@@ -1,0 +1,68 @@
+name: Weekly Deep Scan (Long-Term + Options)
+
+on:
+  schedule:
+    - cron: "0 11 * * 6"        # Saturday ~6-7 AM ET
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+concurrency:
+  group: screener-state          # never collide with the other workflows
+  cancel-in-progress: false
+
+jobs:
+  run-screener:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run the screener
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TRADIER_TOKEN: ${{ secrets.TRADIER_TOKEN }}
+
+          RUN_MODE: "longterm"
+          TEST_MODE: "False"      # "True" = 5 stocks, ~1 min (Telegram test)
+          UNIVERSE: "ALL_NA"      # full US + Canada deep scan
+          MAX_STOCKS: "0"
+          REQUEST_DELAY_SECONDS: "0.6"
+          RUN_SCHEDULER: "False"
+
+          LT_LARGE_N: "5"
+          LT_MIDLG_N: "5"
+          LT_SMALL_N: "10"
+          LT_MIN_SCORE: "62"
+          LT_US_ONLY: "True"
+
+          OPT_ENABLE: "True"
+          OPT_OUT: "10"            # best 10 by merit, any call/put mix
+          OPT_SHORTLIST: "30"
+          OPT_DTE_MIN: "45"
+          OPT_DTE_MAX: "90"
+          OPT_MIN_OI: "100"
+          OPT_MIN_VOL: "10"
+          OPT_MIN_PRICE: "5"
+          OPT_MIN_AVGVOL: "300000"
+          OPT_IV_HV_MAX: "1.6"
+          ETF_MIN_IDEAS: "3"       # daily minimum ETF ideas
+          ETF_CORE: "SPY,QQQ,IWM"  # always analyzed
+          LEAPS_OUT: "3"           # long-dated ideas on top fundamentals
+          LEAPS_DTE_MIN: "180"     # >= ~6 months
+          LEAPS_DTE_TARGET: "540"  # prefer ~18 months
+          WATCHLIST_MAX: "45"
+        run: python main.py
+      - name: Save state back to the repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase || true
+          git add history.csv latest_results.csv watchlist.json iv_history.csv alert_state.json 2>/dev/null || true
+          if git diff --cached --quiet; then echo "No changes."; else
+            git commit -m "Weekly scan state $(date -u +%Y-%m-%d)"; git push; fi
