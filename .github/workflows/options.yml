@@ -1,0 +1,65 @@
+name: Options Scan (lands ~10am + ~3pm ET)
+
+on:
+  schedule:
+    # Starts ~9:30 AM / ~2:25 PM ET so the finished report LANDS ~10 AM / ~3 PM.
+    # UTC crons, summer (EDT). In November (EST) shift to 14:30 / 19:25.
+    - cron: "30 13 * * 1-5"
+    - cron: "25 18 * * 1-5"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+concurrency:
+  group: screener-state
+  cancel-in-progress: false
+
+jobs:
+  options-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run options scan (S&P500 + NASDAQ-100 + ETFs + watchlist)
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TRADIER_TOKEN: ${{ secrets.TRADIER_TOKEN }}
+
+          RUN_MODE: "options"
+          TEST_MODE: "False"
+          MAX_STOCKS: "0"
+          REQUEST_DELAY_SECONDS: "0.4"
+          RUN_SCHEDULER: "False"
+
+          OPT_ENABLE: "True"
+          OPT_OUT: "10"            # best 10 by merit, any call/put mix
+          OPT_SHORTLIST: "30"
+          OPT_DTE_MIN: "45"
+          OPT_DTE_MAX: "90"
+          OPT_MIN_OI: "100"
+          OPT_MIN_VOL: "10"
+          OPT_MIN_PRICE: "5"
+          OPT_MIN_AVGVOL: "300000"
+          OPT_IV_HV_MAX: "1.6"
+          ETF_MIN_IDEAS: "3"       # daily minimum ETF ideas
+          ETF_CORE: "SPY,QQQ,IWM"  # always analyzed
+          LEAPS_OUT: "3"           # long-dated ideas on top fundamentals
+          LEAPS_DTE_MIN: "180"     # >= ~6 months
+          LEAPS_DTE_TARGET: "540"  # prefer ~18 months
+          WATCHLIST_MAX: "45"
+          ETF_INCLUDE: "True"
+        run: python main.py
+      - name: Save state back to the repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase || true
+          git add watchlist.json iv_history.csv alert_state.json history.csv latest_results.csv 2>/dev/null || true
+          if git diff --cached --quiet; then echo "No changes."; else
+            git commit -m "Options scan state $(date -u +%Y-%m-%d %H:%M)"; git push; fi
