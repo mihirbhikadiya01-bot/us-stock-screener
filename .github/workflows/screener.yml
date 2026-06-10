@@ -29,7 +29,7 @@ jobs:
           TRADIER_TOKEN: ${{ secrets.TRADIER_TOKEN }}
 
           RUN_MODE: "longterm"
-          TEST_MODE:  "True"    # "True" = 5 stocks, ~1 min (Telegram test)
+          TEST_MODE:  "False"   # "True" = 5 stocks, ~1 min (Telegram test)
           UNIVERSE: "ALL_NA"      # full US + Canada deep scan
           MAX_STOCKS: "0"
           REQUEST_DELAY_SECONDS: "0.6"
