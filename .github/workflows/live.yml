@@ -2,8 +2,8 @@ name: Live Trigger Alerts (hourly)
 
 on:
   schedule:
-    # Hourly between the two big runs. Summer: 14:30-18:30 UTC = 10:30am-2:30pm ET.
-    - cron: "30 14,15,16,17,18 * * 1-5"
+    # Hourly between the two big runs. Summer: 14:23-18:23 UTC = 10:23am-2:23pm ET.
+    - cron: "23 14,15,16,17,18 * * 1-5"   # odd minute = less delay
   workflow_dispatch: {}
 
 permissions:
