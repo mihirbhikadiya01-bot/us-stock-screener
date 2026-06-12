@@ -60,6 +60,9 @@ jobs:
           ST_DTE_MAX: "28"
           ST_ETF_OUT: "1"          # +1 short-term ETF
           ST_ETF_LIST: "SPY,QQQ,IWM,GLD,SLV"
+          CHEAP_MAX_PREM: "3.0"    # cheap plays: contracts <= $3.00
+          CHEAP_ST_OUT: "2"        # 2 short-term cheapies
+          CHEAP_LONG_OUT: "1"      # 1 long swing/LEAPS cheapie
           WATCHLIST_MAX: "45"
           ETF_INCLUDE: "True"
         run: python main.py
