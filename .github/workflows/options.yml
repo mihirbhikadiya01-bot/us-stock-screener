@@ -2,10 +2,12 @@ name: Options Scan (lands ~10am + ~3pm ET)
 
 on:
   schedule:
-    # Starts ~9:30 AM / ~2:25 PM ET so the finished report LANDS ~10 AM / ~3 PM.
-    # UTC crons, summer (EDT). In November (EST) shift to 14:30 / 19:25.
-    - cron: "30 13 * * 1-5"
-    - cron: "25 18 * * 1-5"
+    # Odd minutes = far less GitHub scheduler delay than :00/:30 slots.
+    # Starts ~9:17 AM / ~1:53 PM ET; scan takes ~30 min, so reports land
+    # ~9:50 AM and ~2:25-2:45 PM ET even with normal queue delays.
+    # UTC crons, summer (EDT). In November (EST) shift to 14:17 / 18:53.
+    - cron: "17 13 * * 1-5"
+    - cron: "53 17 * * 1-5"
   workflow_dispatch: {}
 
 permissions:
@@ -38,7 +40,7 @@ jobs:
           RUN_SCHEDULER: "False"
 
           OPT_ENABLE: "True"
-          OPT_OUT: "10"            # best 10 by merit, any call/put mix
+          OPT_OUT: "8"             # best 8 by merit, any call/put mix
           OPT_SHORTLIST: "30"
           OPT_DTE_MIN: "45"
           OPT_DTE_MAX: "90"
@@ -52,6 +54,12 @@ jobs:
           LEAPS_OUT: "3"           # long-dated ideas on top fundamentals
           LEAPS_DTE_MIN: "180"     # >= ~6 months
           LEAPS_DTE_TARGET: "540"  # prefer ~18 months
+          LEAPS_DAYS: "0,3"        # LEAPS only Mon + Thu (0=Mon..6=Sun)
+          ST_OUT: "3"              # short-term (2-4wk) stock ideas
+          ST_DTE_MIN: "14"
+          ST_DTE_MAX: "28"
+          ST_ETF_OUT: "1"          # +1 short-term ETF
+          ST_ETF_LIST: "SPY,QQQ,IWM,GLD,SLV"
           WATCHLIST_MAX: "45"
           ETF_INCLUDE: "True"
         run: python main.py
