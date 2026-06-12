@@ -29,7 +29,7 @@ jobs:
           TRADIER_TOKEN: ${{ secrets.TRADIER_TOKEN }}
 
           RUN_MODE: "longterm"
-          TEST_MODE:  "False"   # "True" = 5 stocks, ~1 min (Telegram test)
+          TEST_MODE: "False"      # "True" = 5 stocks, ~1 min (Telegram test)
           UNIVERSE: "ALL_NA"      # full US + Canada deep scan
           MAX_STOCKS: "0"
           REQUEST_DELAY_SECONDS: "0.6"
@@ -42,7 +42,7 @@ jobs:
           LT_US_ONLY: "True"
 
           OPT_ENABLE: "True"
-          OPT_OUT: "10"            # best 10 by merit, any call/put mix
+          OPT_OUT: "8"             # best 8 by merit, any call/put mix
           OPT_SHORTLIST: "30"
           OPT_DTE_MIN: "45"
           OPT_DTE_MAX: "90"
@@ -56,6 +56,11 @@ jobs:
           LEAPS_OUT: "3"           # long-dated ideas on top fundamentals
           LEAPS_DTE_MIN: "180"     # >= ~6 months
           LEAPS_DTE_TARGET: "540"  # prefer ~18 months
+          ST_OUT: "3"              # short-term (2-4wk) stock ideas
+          ST_DTE_MIN: "14"
+          ST_DTE_MAX: "28"
+          ST_ETF_OUT: "1"          # +1 short-term ETF
+          ST_ETF_LIST: "SPY,QQQ,IWM,GLD,SLV"
           WATCHLIST_MAX: "45"
         run: python main.py
       - name: Save state back to the repo
