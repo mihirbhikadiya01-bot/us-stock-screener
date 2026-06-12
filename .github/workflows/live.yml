@@ -4,7 +4,11 @@ on:
   schedule:
     # Hourly between the two big runs. Summer: 14:23-18:23 UTC = 10:23am-2:23pm ET.
     - cron: "23 14,15,16,17,18 * * 1-5"   # odd minute = less delay
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      heartbeat:
+        description: "Send a status message even if no triggers"
+        default: "true"
 
 permissions:
   contents: write
@@ -31,6 +35,7 @@ jobs:
           RUN_SCHEDULER: "False"
           LIVE_NEAR_PCT: "1.5"
           LIVE_ALERT_APPROACH: "True"
+          LIVE_HEARTBEAT_RUN: ${{ inputs.heartbeat || 'false' }}
         run: python main.py
       - name: Save alert state
         run: |
